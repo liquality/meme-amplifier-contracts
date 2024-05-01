@@ -98,6 +98,35 @@ contract Collective is ICollective, UUPSUpgradeable, Initializable {
     fallback() external payable {
         revert Collective__Fallback();
     }
+    
+    function joinCollective(bytes calldata _inviteSig, bytes16 _inviteId) external {
+        address _newMember = getCaller();
+        // Check if inviteId is valid
+        if (inviteIds[_inviteId]) {
+            revert Collective__NoValidInvite(initiator, _inviteId);
+        }
+        // Check if the signature is valid and signed by an existing member
+        address signer = recoverSigner(_inviteSig, _inviteId);
+        if (!members[signer]) {
+            revert Collective__NoValidInvite(signer, _inviteId);
+        }
+        // Join the collective
+        members[_newMember] = true;
+        emit NewMember(_newMember);
+    }
+
+    function leaveCollective() external {
+        // get signer from calldata
+        address _member = getCaller();
+        members[_member] = false;
+        emit MemberRemoved(_member);
+    }
+
+    function removeMember(address _member) external {
+        _requireFromInitiator();
+        members[_member] = false;
+        emit MemberRemoved(_member);
+    }
 
     function createPools(address[] calldata _tokenContracts, address[] calldata _honeyPots) external {
         address _caller = getCaller();
@@ -145,9 +174,20 @@ contract Collective is ICollective, UUPSUpgradeable, Initializable {
         return true;
     }
 
+    function renounceOperator() external {
+        _requireFromAuthorizedOperator();
+        delete operator;
+        emit OperatorRenounced(msg.sender);
+    }
+
     function whitelistTargets(address[] calldata _targets) external {
         _requireFromAuthorizedOperator();
         ICWallet(cWallet).whitelistTargets(_targets);
+    }
+
+    function blacklistTargets(address[] calldata _targets) external {
+        _requireFromAuthorizedOperator();
+        ICWallet(cWallet).blacklistTargets(_targets);
     }
 
     /* ------------------------------ READ METHODS ---------------------------- */

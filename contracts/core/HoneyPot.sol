@@ -4,10 +4,10 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract HoneyPot is Initializable, UUPSUpgradeable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract HoneyPot is Initializable, UUPSUpgradeable, ReentrancyGuardUpgradeable {
 
     address payable internal topContributor;
     address internal ownerContract;
@@ -20,6 +20,7 @@ contract HoneyPot is Initializable, UUPSUpgradeable, OwnableUpgradeable, Reentra
     error HoneyPot__TopContributorNotSet();
     error HoneyPot__RewardFailedToSend(address, uint256);
     error HoneyPot__OnlyOperator(address caller);
+    error HoneyPot__ERC20RewardFailedToSend(address, uint256);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -31,7 +32,6 @@ contract HoneyPot is Initializable, UUPSUpgradeable, OwnableUpgradeable, Reentra
     }
 
     function initialize(address _operator) public payable initializer {
-        __Ownable_init(msg.sender);
         operator = _operator;
     }
 
@@ -51,6 +51,17 @@ contract HoneyPot is Initializable, UUPSUpgradeable, OwnableUpgradeable, Reentra
             revert HoneyPot__RewardFailedToSend(topContributor, rewardValue);
         }
         emit RewardSent(topContributor, rewardValue);
+    }
+
+    // withdraw ERC20 to recipient
+    function withdrawERC20(address _tokenContract, address _recipient, uint256 _amount) external {
+        _requireFromAuthorizedOperator();
+        IERC20 token = IERC20(_tokenContract);
+        (bool success) = token.transfer(_recipient, _amount);
+        if (!success) {
+            revert HoneyPot__RewardFailedToSend(_recipient, _amount);
+        }
+        emit RewardSent(_recipient, _amount);
     }
 
 

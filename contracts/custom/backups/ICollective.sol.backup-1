@@ -36,22 +36,45 @@ interface ICollective {
     /* METHODS */
 
     /* ---- WRITE METHODS ---- */
+
+    /// @notice Set collective address
+    /// @dev This function is called by the collective, to set the collective address
+    function joinCollective(bytes calldata _inviteSig, bytes16 _inviteId) external;
+
     /// @notice Create a new pool
     /// @dev This function is called by the collective, to create a new pool
     /// @param _tokenContracts The address of the token contract
     /// @param _honeyPots The address of the honey pot
     function createPools(address[] calldata _tokenContracts, address[] calldata _honeyPots) external ; // Only group admin or whitelisted members
 
+    /// @notice Add a member
+    /// @dev This function is called by the collective, to add a member
+    /// @param _member The address of the member
+    function removeMember(address _member) external; // Only group admin or whitelisted members
+
+    /// @notice leave collective
+    /// @dev This function is called by the member, to leave the collective
+    function leaveCollective() external;
+
     /// @notice Receive pool reward
     /// @dev This function is called by the pool, to receive the pool reward
     /// @param _honeyPot The address of the honey pot sender
     function receivePoolReward(address _honeyPot) external payable returns (bool);
 
+    /// @notice Renounce operator
+    /// @dev This function is called by the operator, to renounce the operator
+    function renounceOperator() external;
+
     /// @notice Whitelist target addresses on wallet
     /// @dev This function is called by the collective, to whitelist target addresses on wallet
     /// @param _targets The address of the target
     function whitelistTargets(address[] calldata _targets) external;
-    
+
+    /// @notice Blacklist target addresses on wallet
+    /// @dev This function is called by the collective, to blacklist target addresses on wallet
+    /// @param _targets The address of the target
+    function blacklistTargets(address[] calldata _targets) external;
+
     // recordPoolMint
     /// @notice Record pool mint
     /// @dev This function is called by the pool, to record the pool mint

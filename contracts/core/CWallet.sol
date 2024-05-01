@@ -163,6 +163,33 @@ contract CWallet is ICWallet, BaseAccount, TokenCallbackHandler, UUPSUpgradeable
         currentSigner = address(0);
     }
 
+    // ====== TODO: Remove Custom ======
+
+    /**
+     * execute a sequence of transactions
+     * @dev to reduce gas consumption for trivial case (no value), use a zero-length array to mean zero value
+     */
+    function executeBatchWithPay(address[] calldata dest, uint256[] calldata value, bytes[] calldata func) payable external {
+        require(dest.length == func.length && (value.length == 0 || value.length == func.length), "wrong array lengths");
+        if (value.length == 0) {
+            for (uint256 i = 0; i < dest.length; i++) {
+                _requireToWhitelisted(dest[i]);
+                _call(dest[i], 0, func[i]);
+            }
+        } else {
+            uint256 totalValue = msg.value;
+            for (uint256 i = 0; i < dest.length; i++) {
+                _requireToWhitelisted(dest[i]);
+                if (totalValue < value[i]) {
+                    revert CWallet__NotEnoughBalance(currentSigner, balances[currentSigner], value[i]);
+                }
+                totalValue -= value[i];
+                _call(dest[i], value[i], func[i]);
+            }
+        }
+    }
+   // ============= Custom ============= 
+
     function _call(address target, uint256 value, bytes memory data) internal {
         (bool success, bytes memory result) = target.call{value : value}(data);
         if (!success) {
@@ -280,5 +307,11 @@ contract CWallet is ICWallet, BaseAccount, TokenCallbackHandler, UUPSUpgradeable
         if (!whitelistedTargets[dest]) {
             revert CWallet__OnlyWhitelistedTargets(dest);
         }
+    }
+    function _requireFromEntryPoint() internal view override {
+        require(
+            msg.sender == address(entryPoint()) || msg.sender == operator,
+            "account: not from EntryPoint"
+        );
     }
 }

@@ -1,9 +1,11 @@
 import { setBalance } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers, upgrades } from "hardhat";
 import { Bytecode } from "hardhat/internal/hardhat-network/stack-traces/model";
+// import {HoneyPot__factory} from "../typechain";
 
 async function main() {
     console.log("Deploying from account:", (await ethers.getSigners())[0].address);
+    console.log("Deploying from account:", (await ethers.provider.getBalance((await ethers.getSigners())[0].address)).toString());
     // deployEntryPoint()
     // await deployMockToken()
     await honeyPotFactory()
@@ -35,9 +37,9 @@ async function escrowFactory() {
 
 async function collectiveFactory(entryPoint: string) {
     console.log(".........Deploying CollectiveFactory ......... \n")
-    let contractFactory = await ethers.getContractFactory("CollectiveFactory");
+    let contractFactory = (await ethers.getContractFactory("CollectiveFactory")).connect((await ethers.getSigners())[0]);
     //let cFactory =  await contractFactory.deploy(ethers.getAddress((process.env.ENTRY_POINT_ADDRESS as string)));
-    let cFactory =  await contractFactory.connect((await ethers.getSigners())[2]).deploy(ethers.getAddress((entryPoint)));
+    let cFactory =  (await contractFactory.connect((await ethers.getSigners())[0]).deploy(ethers.getAddress((entryPoint))));
     // const test = (await contractFactory.getDeployTransaction(ethers.getAddress((entryPoint)))).data
     // console.log("test >> ", test)
     await cFactory.waitForDeployment();
@@ -47,13 +49,29 @@ async function collectiveFactory(entryPoint: string) {
 }
 
 async function honeyPotFactory() {
+    // console.log(".........Deploying HoneyPot ......... \n")
+    // let HoneyPotFactory = (await ethers.getContractFactory("HoneyPot")).connect((await ethers.getSigners())[2]);
+    // const HoneyPotDeploy = (await upgrades.deployProxy(HoneyPotFactory, [ethers.getAddress(("0x229ef326FE08C8b2423B786052D7E1a1AdDaD226"))])).connect((await ethers.getSigners())[2]);
+    // await HoneyPotDeploy.waitForDeployment()
+
+    
+    // ethers.getAddress(("0x229ef326FE08C8b2423B786052D7E1a1AdDaD226"))
+   
+    // await hFactory.waitForDeployment();
+    // let hFactoryAddress = await hFactory.getAddress();
+
     console.log(".........Deploying HoneyPotFactory ......... \n")
     let contractFactory = await ethers.getContractFactory("HoneyPotFactory");
     let hFactory =  await contractFactory.connect((await ethers.getSigners())[2]).deploy();
     await hFactory.waitForDeployment();
-    let hFactoryAddress = await hFactory.getAddress();
-  
-    console.log(`.........hFactory deployed at ${hFactoryAddress} ......... \n`)
+    console.log(`.........hFactory deployed at ${await hFactory.getAddress()} ......... \n`)
+
+    // let contractFactory = await ethers.getContractFactory("HoneyPot");
+    // const hFactory = contractFactory.attach("0x86CEB9D63e0daD26A41c5845E7e1Ab3dad6695b5")
+    // const provider = new ethers.JsonRpcProvider(process.env.GOERLI_RPC)
+    // let hFactory = new ethers.Contract("0x86CEB9D63e0daD26A41c5845E7e1Ab3dad6695b5", contractFactory.interface, provider);
+
+
 }
 
 async function fundWallet(cwallet: string) {

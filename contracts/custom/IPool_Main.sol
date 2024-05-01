@@ -2,15 +2,15 @@
 
 pragma solidity ^0.8.20;
 
-interface IPool {
+interface IPool_Main {
     
     /* EVENTS */
     event NewMint(address indexed participant, uint256 indexed tokenID, uint256 quantity, uint256 indexed amountPaid);
-    event RewardDistributed(uint256 indexed amountToken, uint256 indexed amountNative);
-    event RewardWithdrawn(address indexed participant, uint256 indexed nativeAmount, uint256 indexed tokenAmount);
+    event RewardDistributed(address indexed participant, uint256 indexed amount);
+    event RewardWithdrawn(address indexed participant, uint256 indexed amount);
     event RewardReceived(address indexed from, uint256 amount);
     event NewParticipant(address indexed participant);
-    event WithdrawnFromPool(address indexed to, address indexed token, uint256 indexed amount);
+    event WithrawnToCollective(address indexed to, address indexed token, uint256 indexed amount);
 
     /* ERRORS */
     error Pool__ZeroParticipation(address participant);
@@ -32,12 +32,12 @@ interface IPool {
 
     /// @notice Distribute reward according to distribution mapping
     /// @dev This function is called by the collective AA wallet, when a reward is received from the NFT contract
-    function distributeReward(address _tokenContract) external;
+    function distributeReward() external;
 
     /// @notice Withdraw reward from pool
     /// @dev This function is called by the participant, to withdraw their reward from the pool
-    /// @param _participants The address of the participants
-    function withdrawReward(address[] calldata _participants, address _tokenContracts) external;
+    /// @param _participant The address of the participant
+    function withdrawReward(address _participant) external;
 
     /* -----READ ONLY METHODS----- */
 

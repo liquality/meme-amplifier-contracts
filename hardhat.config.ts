@@ -22,6 +22,11 @@ const config: HardhatUserConfig = {
       {version: "0.8.12"},
     ]
   },
+  // typechain: {
+  //   outDir: 'typechain-types',
+  //   target: 'ethers-v5',
+  //   // Optionally you can add other TypeChain options here
+  // },
   networks: {
     localhost: {
       url: 'http://127.0.0.1:8545/',
@@ -58,6 +63,12 @@ const config: HardhatUserConfig = {
     },
     "baseGoerli" : {
       url: process.env.BASE_GOERLI_RPC,
+      accounts: {
+        mnemonic: process.env.MNEMONIC,
+      },
+    },
+    "baseSepolia" : {
+      url: process.env.BASE_SEPOLIA_RPC,
       accounts: {
         mnemonic: process.env.MNEMONIC,
       },
@@ -100,6 +111,8 @@ const config: HardhatUserConfig = {
       arbitrumOne : process.env.ETHERSCAN_ARBITRUM_KEY as string,
       polygonMumbai: process.env.ETHERSCAN_MUMBAI_KEY as string,
       sepolia: process.env.ETHERSCAN_SEPOLIA_KEY as string,
+      goerli: process.env.ETHERSCAN_SEPOLIA_KEY as string,
+      baseSepolia: process.env.ETHERSCAN_BASE_KEY as string,
     }
   },
   tracer: {
